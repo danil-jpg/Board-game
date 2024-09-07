@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Game</title>
+	</head>
+	<body>
+		<style>
+			.main {
+				display: flex;
+				justify-content: center;
+			}
+
+			.list {
+				display: grid;
+				padding: 0;
+			}
+
+			.list__item {
+				min-width: 100px;
+				min-height: 100px;
+				border: 1px solid #000;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				font-size: 42px;
+				cursor: pointer;
+			}
+
+			.list__item_deleted {
+				background-color: #ff0000;
+				color: #fff;
+				animation: tilt-shaking 0.25s;
+			}
+
+			@keyframes tilt-shaking {
+				0% {
+					transform: rotate(0deg);
+				}
+				25% {
+					transform: rotate(5deg);
+				}
+				50% {
+					transform: rotate(0deg);
+				}
+				75% {
+					transform: rotate(-5deg);
+				}
+				100% {
+					transform: rotate(0deg);
+				}
+			}
+		</style>
+
+		<main class="main">
+			<ul class="list"></ul>
+		</main>
+
+		<script>
+			const list = document.querySelector('.list')
+			const matrixArray = []
+
+			const itemClickHandler = (matrixArray, coordX, coordY, target) => {
+				const initialElementInt = matrixArray[coordY][coordX]
+				const rows = matrixArray.length
+				const columns = matrixArray[0].length
+
+				const isInsideOfBounds = (coordX, coordY) => {
+					// console.log(
+					// 	'is out of bounds returned',
+					// 	coordX >= 0 && coordX < columns && coordY >= 0 && coordY < rows,
+					// 	'rows',
+					// 	rows,
+					// 	'columns',
+					// 	columns
+					// )
+
+					// console.log(
+					// 	'current element',
+					// 	matrixArray[coordY][coordX],
+					// 	'initialElement',
+					// 	initialElementInt
+					// )
+					return coordX >= 0 && coordX < columns && coordY >= 0 && coordY < rows
+				}
+
+				const findNeighborElem = (coordX, coordY) => {
+					if (
+						!isInsideOfBounds(coordX, coordY) ||
+						matrixArray[coordY][coordX] !== initialElementInt ||
+						matrixArray[coordY][coordX] === null
+					) {
+						return
+					}
+
+					const currentDomElement = document.querySelector(`[row="${coordY}"][column="${coordX}"]`)
+
+					matrixArray[coordY][coordX] = null
+
+					currentDomElement.classList.add('list__item_deleted')
+
+					findNeighborElem(coordX + 1, coordY)
+
+					findNeighborElem(coordX - 1, coordY)
+
+					findNeighborElem(coordX, coordY + 1)
+
+					findNeighborElem(coordX, coordY - 1)
+				}
+
+				findNeighborElem(coordX, coordY)
+			}
+
+			const generateRandomInt = () => {
+				return Math.floor(Math.random() * (Math.floor(4) - Math.ceil(1) + 1)) + Math.ceil(1)
+			}
+
+			const createField = (numbOfRows, numOfColumns) => {
+				list.style.gridTemplateColumns = `repeat(${numOfColumns}, 1fr)`
+
+				for (let i = 0; i < numbOfRows; i++) {
+					matrixArray.push([])
+
+					for (let j = 0; j < numOfColumns; j++) {
+						const listElem = document.createElement('li')
+						const randomInt = generateRandomInt(1, 4)
+
+						listElem.classList.add('list__item')
+
+						listElem.setAttribute('row', i)
+						listElem.setAttribute('column', j)
+
+						listElem.textContent = randomInt
+
+						listElem.addEventListener('click', (e) => {
+							itemClickHandler(matrixArray, j, i, e)
+						})
+
+						list.appendChild(listElem)
+
+						matrixArray[i].push(randomInt)
+					}
+				}
+			}
+
+			const promptRows = prompt('Введіть кількість рядів поля')
+			const promptColumns = prompt('Введіть кількість стовпців поля')
+
+			if (promptColumns && promptRows) {
+				createField(promptRows, promptColumns)
+			} else {
+				alert('Щось пішло не так')
+				createField(3, 4)
+			}
+		</script>
+	</body>
+</html>
